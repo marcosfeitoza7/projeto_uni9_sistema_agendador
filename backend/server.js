@@ -25,14 +25,15 @@ app.use("/api/admin", adminRouter);
 // evitando que o Supabase pause o projeto por inatividade.
 app.get("/api/health", async (req, res) => {
   try {
-    const { count, error } = await supabase
-      .from("servicos")
-      .select("*", { count: "exact", head: true });
+    const { data, error } = await supabase.from("servicos").select("id");
 
     if (error) throw error;
-    res.json({ status: "ok", servicosCadastrados: count });
+
+    res.json({ status: "ok", servicosCadastrados: data.length });
   } catch (err) {
-    res.status(500).json({ status: "erro", detalhe: err.message });
+    // O detalhe do erro fica só nos Logs do Render, não na resposta pública
+    console.error("Falha no health check:", err.message);
+    res.status(500).json({ status: "erro" });
   }
 });
 
