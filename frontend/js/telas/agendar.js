@@ -1,7 +1,7 @@
 import { api } from "../api.js";
 import { estado, irPara } from "../app.js";
 import {
-  $, esc, brl, duracao, hhmm, hojeISO, somarDias, rotuloData, dataHora,
+  $, esc, brl, duracao, hhmm, hojeISO, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
   soDigitos, mascaraTelefone, icone, pintar, cabecalho, carregando, toast,
 } from "../ui.js";
 
@@ -100,22 +100,16 @@ function desenharServicos() {
 }
 
 // ---------- Passo 2: data e horário ----------
-function jaPassou(data, hora) {
-  if (data !== hojeISO()) return false;
-  const agora = new Date();
-  const [h, m] = hora.split(":").map(Number);
-  return h * 60 + m <= agora.getHours() * 60 + agora.getMinutes();
-}
-
 async function passoHorario() {
   const r = estado.rascunho;
   if (!r.servico) return irAoPasso(1);
   if (!r.data || r.data < hojeISO()) r.data = hojeISO();
+  if (r.data > limiteAgendamento(hojeISO())) r.data = limiteAgendamento(hojeISO());
 
   const dataPedida = r.data;
   desenharHorarios({ buscando: true });
   try {
-    const horarios = await api.horarios(dataPedida);
+    const horarios = await api.horarios(dataPedida, r.servico.id);
     if (!ctx.ativa() || passo !== 2 || r.data !== dataPedida) return;
     desenharHorarios({ horarios });
   } catch (erro) {
@@ -140,7 +134,7 @@ function desenharHorarios({ buscando, horarios, erro }) {
   } else {
     const lista = horarios.map((h) => {
       const hora = hhmm(h.hora);
-      return { hora, livre: h.disponivel && !jaPassou(r.data, hora) };
+      return { hora, livre: h.disponivel };
     });
     if (r.hora && !lista.some((h) => h.hora === r.hora && h.livre)) r.hora = null;
     area = `
@@ -152,8 +146,9 @@ function desenharHorarios({ buscando, horarios, erro }) {
       <div class="legend">
         <span><i class="sq livre"></i>Disponível</span>
         <span><i class="sq sel"></i>Selecionado</span>
-        <span><i class="sq ocup"></i>Ocupado</span>
-      </div>`;
+        <span><i class="sq ocup"></i>Indisponível</span>
+      </div>
+      ${avisoHorarios(horarios) ? `<p class="hint">${esc(avisoHorarios(horarios))}</p>` : ""}`;
   }
 
   moldura(2, `
@@ -170,7 +165,7 @@ function desenharHorarios({ buscando, horarios, erro }) {
         ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(r.data))}</span>${icone("chevron-down", 22)}
       </button>
       <input type="date" id="data-input" class="sr-only" tabindex="-1" aria-label="Escolher outra data"
-             value="${r.data}" min="${hoje}" max="${somarDias(hoje, 60)}">
+             value="${r.data}" min="${hoje}" max="${limiteAgendamento(hoje)}">
     </div>
     <p class="sub-label">Horários de ${esc(rotuloData(r.data).toLowerCase())}</p>
     ${area}
@@ -251,7 +246,7 @@ function passoDados() {
 
     <div class="footer-actions">
       <button type="button" class="btn btn-primary" id="confirmar">Confirmar agendamento — ${brl(r.servico.preco)}</button>
-      <p class="secure-note">${icone("lock", 16)} Seus dados são usados para o agendamento.</p>
+      <p class="secure-note">${icone("lock", 16)} Seus dados são usados para o agendamento. Cancelamentos e trocas podem ser feitos até 4 horas antes.</p>
     </div>`);
 
   const nome = $("#nome", ctx.raiz);
