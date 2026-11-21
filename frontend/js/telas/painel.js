@@ -90,6 +90,8 @@ function conteudo() {
       ${cartaoNumero("Faturamento", brl(d.faturamento), "Só atendimentos concluídos")}
       ${cartaoNumero("Serviços prestados", String(d.servicosPrestados), "Atendimentos concluídos")}
     </div>
+    <div style="margin-top:12px">${cartaoNumero("Faturamento pendente", brl(d.faturamentoPendente || 0), `${d.atendimentosPendentes || 0} ${d.atendimentosPendentes === 1 ? "atendimento agendado" : "atendimentos agendados"}, ainda a receber`)}</div>
+    <div style="margin-top:12px">${cartaoNumero("Faturamento cancelado", brl(d.faturamentoCancelado || 0), `${d.atendimentosCancelados || 0} ${d.atendimentosCancelados === 1 ? "atendimento cancelado" : "atendimentos cancelados"}, valor que deixou de entrar`)}</div>
     <div style="margin-top:12px">${cartaoNumero("Ticket médio", brl(d.ticketMedio), "Faturamento por atendimento concluído")}</div>
 
     <section class="card" style="margin-top:14px">
