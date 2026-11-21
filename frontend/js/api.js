@@ -66,5 +66,11 @@ export const api = {
       requisitar(`/api/admin/agendamentos/${id}/status`, { metodo: "PATCH", corpo: { status }, token }),
     dashboard: (inicio, fim, token) =>
       requisitar(`/api/admin/dashboard?inicio=${inicio}&fim=${fim}`, { token }),
+    servicos: (token) => requisitar("/api/admin/servicos", { token }),
+    criarServico: (corpo, token) => requisitar("/api/admin/servicos", { metodo: "POST", corpo, token }),
+    editarServico: (id, corpo, token) =>
+      requisitar(`/api/admin/servicos/${id}`, { metodo: "PUT", corpo, token }),
+    ativarServico: (id, ativo, token) =>
+      requisitar(`/api/admin/servicos/${id}/ativo`, { metodo: "PATCH", corpo: { ativo }, token }),
   },
 };
