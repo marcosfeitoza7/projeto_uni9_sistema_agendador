@@ -17,6 +17,7 @@ const rotas = {
   "/login": "./telas/login.js",
   "/agenda": "./telas/agenda.js",
   "/painel": "./telas/painel.js",
+  "/servicos": "./telas/servicos.js",
 };
 
 export const irPara = (caminho) => { location.hash = `#${caminho}`; };
