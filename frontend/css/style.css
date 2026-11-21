@@ -239,7 +239,7 @@ a{color:inherit;text-decoration:none}
 .btn-danger:hover{background:#9E1049}
 .btn-danger:disabled{background:#E5A9BF;cursor:not-allowed}
 
-/* Janelas que sobem do rodapé */
+/* Janelas que sobem do rodapé */.
 .modal{position:fixed;inset:0;background:rgba(36,28,61,.45);display:flex;align-items:flex-end;justify-content:center;z-index:40}
 .sheet{
   width:100%;max-width:480px;max-height:92vh;max-height:92dvh;overflow-y:auto;
