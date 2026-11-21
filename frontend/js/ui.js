@@ -107,3 +107,26 @@ export function toast(mensagem, tipo = "") {
   clearTimeout(temporizadorToast);
   temporizadorToast = setTimeout(() => { el.className = "toast"; }, 3200);
 }
+
+// Última data em que dá para agendar: o mesmo dia do mês seguinte, menos 1 dia
+// (hoje 21/11 libera até 20/12). Mesma regra do back-end, usada só para limitar o calendário.
+export function limiteAgendamento(hoje) {
+  const [a, m, d] = hoje.split("-").map(Number);
+  const ultimoDiaDoMesSeguinte = new Date(Date.UTC(a, m + 1, 0)).getUTCDate();
+  const dia = Math.min(d, ultimoDiaDoMesSeguinte);
+  return new Date(Date.UTC(a, m, dia - 1)).toISOString().slice(0, 10);
+}
+
+// Explica ao cliente por que alguns horários não podem ser escolhidos.
+// "horarios" vem da API: [{ hora, disponivel, motivo }]
+export function avisoHorarios(horarios) {
+  const motivos = new Set(horarios.filter((h) => !h.disponivel).map((h) => h.motivo));
+  if (!horarios.some((h) => h.disponivel)) {
+    if (motivos.has("FECHADO")) return "O studio não atende neste dia. Escolha outra data.";
+    if (motivos.has("FORA_DA_JANELA")) return "Esta data ainda não está aberta para agendamento. Escolha uma data mais próxima.";
+    if (motivos.has("ANTECEDENCIA")) return "Não há mais horários neste dia: é preciso agendar com pelo menos 2 horas de antecedência.";
+    return "Não há horários livres neste dia. Escolha outra data.";
+  }
+  if (motivos.has("ANTECEDENCIA")) return "Horários nas próximas 2 horas não podem ser reservados.";
+  return "";
+}
