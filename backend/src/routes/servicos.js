@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     .eq("ativo", true)
     .order("preco", { ascending: false });
 
-  if (error) return res.status(500).json({ erro: error.message });
+  if (error) { console.error(error.message); return res.status(500).json({ erro: "Erro interno no servidor." }); }
   res.json(data);
 });
 
