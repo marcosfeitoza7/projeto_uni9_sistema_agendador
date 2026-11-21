@@ -5,12 +5,15 @@ const { exigirLogin } = require("../middleware/auth");
 
 const router = express.Router();
 
+// Data de hoje no fuso do Brasil (toISOString usaria UTC e erraria o dia após as 21h)
+const hojeBrasil = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+
 // Todas as rotas abaixo exigem um token válido da lash designer
 router.use(exigirLogin);
 
 // GET /api/admin/agenda?data=2026-11-10
 router.get("/agenda", async (req, res) => {
-  const data = req.query.data || new Date().toISOString().slice(0, 10);
+  const data = req.query.data || hojeBrasil();
 
   const { data: agendamentos, error } = await supabase
     .from("agendamentos")
@@ -18,7 +21,7 @@ router.get("/agenda", async (req, res) => {
     .eq("data", data)
     .order("hora", { ascending: true });
 
-  if (error) return res.status(500).json({ erro: error.message });
+  if (error) { console.error(error.message); return res.status(500).json({ erro: "Erro interno no servidor." }); }
   res.json(agendamentos);
 });
 
@@ -35,15 +38,17 @@ router.patch("/agendamentos/:id/status", async (req, res) => {
     const atualizado = await svc.atualizarStatus(req.params.id, status);
     res.json(atualizado);
   } catch (err) {
-    res.status(500).json({ erro: err.message });
+    if (!err.status) console.error("Erro ao atualizar status:", err.message);
+    res.status(err.status || 500).json({ erro: err.status ? err.message : "Erro interno no servidor." });
   }
 });
 
 // GET /api/admin/dashboard?inicio=2026-11-01&fim=2026-11-30
 router.get("/dashboard", async (req, res) => {
-  const hoje = new Date();
-  const inicioPadrao = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0, 10);
-  const fimPadrao = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).toISOString().slice(0, 10);
+  const [ano, mes] = hojeBrasil().split("-").map(Number);
+  const pad = (n) => String(n).padStart(2, "0");
+  const inicioPadrao = `${ano}-${pad(mes)}-01`;
+  const fimPadrao = `${ano}-${pad(mes)}-${pad(new Date(ano, mes, 0).getDate())}`;
 
   const inicio = req.query.inicio || inicioPadrao;
   const fim = req.query.fim || fimPadrao;
@@ -54,7 +59,7 @@ router.get("/dashboard", async (req, res) => {
     .gte("data", inicio)
     .lte("data", fim);
 
-  if (error) return res.status(500).json({ erro: error.message });
+  if (error) { console.error(error.message); return res.status(500).json({ erro: "Erro interno no servidor." }); }
 
   const concluidos = agendamentos.filter((a) => a.status === "concluido");
   const faturamento = concluidos.reduce((soma, a) => soma + Number(a.servicos.preco), 0);
