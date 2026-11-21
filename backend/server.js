@@ -8,8 +8,9 @@ const agendamentosRouter = require("./src/routes/agendamentos");
 const adminRouter = require("./src/routes/admin");
 
 const app = express();
+app.set("trust proxy", 1);
 
-app.use(cors({ origin: process.env.FRONTEND_URL || "*" }));
+app.use(cors({ origin: process.env.FRONTEND_URL || false }));
 app.use(express.json());
 
 // Rotas públicas (área do cliente, sem login)
