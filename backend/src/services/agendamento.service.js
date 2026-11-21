@@ -11,7 +11,9 @@ const gerarCodigoConfirmacao = () =>
 const normalizarTelefone = (telefone) => String(telefone || "").replace(/\D/g, "");
 
 // ---------- Consultas auxiliares ----------
-async function buscarServico(id) {
+// permitirInativo: quem já tem agendamento numa versão antiga do serviço (hoje desativada)
+// continua podendo trocar o horário; só novos agendamentos exigem serviço ativo.
+async function buscarServico(id, { permitirInativo = false } = {}) {
   const { data, error } = await supabase
     .from("servicos")
     .select("id, nome, preco, duracao_minutos, ativo")
@@ -19,7 +21,7 @@ async function buscarServico(id) {
     .maybeSingle();
 
   if (error && error.code !== "22P02") throw error;   // 22P02 = id em formato inválido
-  if (error || !data || !data.ativo) {
+  if (error || !data || (!data.ativo && !permitirInativo)) {
     throw new ErroRegra("Esse serviço não está disponível.", 422, "SERVICO_INVALIDO");
   }
   return data;
@@ -100,7 +102,7 @@ async function verificarLimiteAtivos(clienteId, agora) {
 async function listarHorariosDisponiveis(data, servicoId, ignorarId) {
   if (!R.dataValida(data)) throw new ErroRegra("Data inválida.", 400, "DATA_INVALIDA");
 
-  const duracaoMin = servicoId ? (await buscarServico(servicoId)).duracao_minutos : REGRAS.duracaoPadraoMin;
+  const duracaoMin = servicoId ? (await buscarServico(servicoId, { permitirInativo: Boolean(ignorarId) })).duracao_minutos : REGRAS.duracaoPadraoMin;
   const doDia = await agendamentosDoDia(data);
   const agora = R.agoraBrasil();
 
