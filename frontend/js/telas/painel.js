@@ -129,10 +129,10 @@ function desenhar() {
     <button type="button" class="btn btn-primary" id="aplicar" style="margin-top:12px">Aplicar período</button>` : "";
 
   const direita = `
-    <div style="display:flex;gap:10px">
-      <a class="icon-btn" href="#/agenda" aria-label="Agenda do dia">${icone("calendar-days", 20)}</a>
-      <button type="button" class="icon-btn" id="sair" aria-label="Sair">${icone("log-out", 20)}</button>
-    </div>`;
+    <nav class="nav-prof" aria-label="Menu da profissional">
+      <a class="nav-item" href="#/agenda"><span class="nav-ico">${icone("calendar-days", 20)}</span><span class="nav-rot">Agenda</span></a>
+      <button class="nav-item" type="button" id="sair"><span class="nav-ico">${icone("log-out", 20)}</span><span class="nav-rot">Sair</span></button>
+    </nav>`;
 
   pintar(ctx.raiz, `
     ${cabecalho(direita)}
