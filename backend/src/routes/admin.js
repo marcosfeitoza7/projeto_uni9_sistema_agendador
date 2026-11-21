@@ -177,6 +177,14 @@ router.get("/dashboard", async (req, res) => {
   const faturamento = concluidos.reduce((soma, a) => soma + Number(a.servicos.preco), 0);
   const ticketMedio = concluidos.length ? faturamento / concluidos.length : 0;
 
+  // A receber: agendados (confirmados ou pendentes) que ainda não foram concluídos
+  const aReceber = agendamentos.filter((a) => a.status === "confirmado" || a.status === "pendente");
+  const faturamentoPendente = aReceber.reduce((soma, a) => soma + Number(a.servicos.preco), 0);
+
+  // Cancelado: valor que deixou de entrar com os agendamentos cancelados
+  const cancelados = agendamentos.filter((a) => a.status === "cancelado");
+  const faturamentoCancelado = cancelados.reduce((soma, a) => soma + Number(a.servicos.preco), 0);
+
   const rankingMap = new Map();
   agendamentos
     .filter((a) => a.status !== "cancelado")
@@ -194,6 +202,10 @@ router.get("/dashboard", async (req, res) => {
     faturamento,
     servicosPrestados: concluidos.length,
     ticketMedio,
+    faturamentoPendente,
+    atendimentosPendentes: aReceber.length,
+    faturamentoCancelado,
+    atendimentosCancelados: cancelados.length,
     servicosMaisContratados: ranking,
     statusDaAgenda: {
       concluido: concluidos.length,
