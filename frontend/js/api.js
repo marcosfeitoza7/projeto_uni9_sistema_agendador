@@ -40,7 +40,12 @@ async function requisitar(caminho, { metodo = "GET", corpo, token } = {}) {
 export const api = {
   // Área do cliente (sem login)
   servicos: () => requisitar("/api/servicos"),
-  horarios: (data) => requisitar(`/api/agendamentos/horarios?data=${data}`),
+  horarios: (data, servicoId, ignorarId) => {
+    const q = new URLSearchParams({ data });
+    if (servicoId) q.set("servico_id", servicoId);
+    if (ignorarId) q.set("ignorar", ignorarId);
+    return requisitar(`/api/agendamentos/horarios?${q}`);
+  },
   agendar: (corpo) => requisitar("/api/agendamentos", { metodo: "POST", corpo }),
   consultar: (telefone, codigo) =>
     requisitar(
