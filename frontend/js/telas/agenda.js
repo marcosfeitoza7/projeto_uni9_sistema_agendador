@@ -111,6 +111,7 @@ function desenhar() {
   const direita = `
     <div style="display:flex;gap:10px">
       <a class="icon-btn" href="#/painel" aria-label="Painel executivo">${icone("layout-dashboard", 20)}</a>
+      <a class="icon-btn" href="#/servicos" aria-label="Serviços e preços">${icone("list", 20)}</a>
       <button type="button" class="icon-btn" id="sair" aria-label="Sair">${icone("log-out", 20)}</button>
     </div>`;
 
