@@ -109,11 +109,11 @@ function desenhar() {
   }
 
   const direita = `
-    <div style="display:flex;gap:10px">
-      <a class="icon-btn" href="#/painel" aria-label="Painel executivo">${icone("layout-dashboard", 20)}</a>
-      <a class="icon-btn" href="#/servicos" aria-label="Serviços e preços">${icone("list", 20)}</a>
-      <button type="button" class="icon-btn" id="sair" aria-label="Sair">${icone("log-out", 20)}</button>
-    </div>`;
+    <nav class="nav-prof" aria-label="Menu da profissional">
+      <a class="nav-item" href="#/painel"><span class="nav-ico">${icone("layout-dashboard", 20)}</span><span class="nav-rot">Painel</span></a>
+      <a class="nav-item" href="#/servicos"><span class="nav-ico">${icone("list", 20)}</span><span class="nav-rot">Serviços</span></a>
+      <button class="nav-item" type="button" id="sair"><span class="nav-ico">${icone("log-out", 20)}</span><span class="nav-rot">Sair</span></button>
+    </nav>`;
 
   pintar(ctx.raiz, `
     ${cabecalho(direita)}
