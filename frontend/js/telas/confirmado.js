@@ -2,7 +2,7 @@ import { estado, irPara } from "../app.js";
 import { esc, brl, dataHora, icone, pintar, cabecalho, toast } from "../ui.js";
 
 export function renderizar({ raiz }) {
-  // Se a página foi recarregada, o código continua guardado na sessão do navegador
+  // Se a página foi recarregada, o código continua guardado na sessão do navegador.
   let ag = estado.ultimoAgendamento;
   if (!ag) {
     try { ag = JSON.parse(sessionStorage.getItem("ultimoAgendamento")); } catch { ag = null; }
