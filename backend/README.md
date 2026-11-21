@@ -6,7 +6,7 @@ API em Node.js + Express conectada ao Supabase (PostgreSQL).
 
 ```bash
 npm install
-cp .env.example .env   # preencha com a URL e a chave secreta do Supabase
+cp .env.example .env   # preencha URL e chave do Supabase e o e-mail da profissional
 npm run dev
 ```
 
@@ -24,3 +24,12 @@ npm run dev
 | GET | /api/admin/agenda?data= | login da profissional |
 | PATCH | /api/admin/agendamentos/:id/status | login da profissional |
 | GET | /api/admin/dashboard?inicio=&fim= | login da profissional |
+| GET | /api/admin/servicos | login da profissional |
+| POST | /api/admin/servicos | login da profissional |
+| PUT | /api/admin/servicos/:id | login da profissional (cria nova versão) |
+| PATCH | /api/admin/servicos/:id/ativo | login da profissional (desativar/reativar) |
+
+## Banco de dados
+
+Execute `sql/schema.sql` no SQL Editor do Supabase para criar o schema `lash_studio`
+(tabelas, índice único de horário, view `vw_fato_agendamentos` e serviços iniciais).
