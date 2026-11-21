@@ -1,7 +1,7 @@
 import { api } from "../api.js";
 import { estado } from "../app.js";
 import {
-  $, esc, brl, duracao, hhmm, hojeISO, somarDias, rotuloData, dataHora,
+  $, esc, brl, duracao, hhmm, hojeISO, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
   soDigitos, mascaraTelefone, icone, pintar, cabecalho, botaoVoltar, toast,
 } from "../ui.js";
 
@@ -14,14 +14,6 @@ const ROTULO_STATUS = {
   concluido: "Concluído",
   cancelado: "Cancelado",
 };
-
-// Horários de hoje que já passaram não podem ser escolhidos
-function jaPassou(data, hora) {
-  if (data !== hojeISO()) return false;
-  const agora = new Date();
-  const [h, m] = hora.split(":").map(Number);
-  return h * 60 + m <= agora.getHours() * 60 + agora.getMinutes();
-}
 
 // ---------- Desenho da tela ----------
 function cartao() {
@@ -45,7 +37,10 @@ function cartao() {
       <div class="linha"><span>Profissional</span><b>Lash Studio</b></div>
       <div class="linha"><span>Duração</span><b>${duracao(servico.duracao_minutos)}</b></div>
       <div class="linha"><span>Valor</span><b>${brl(servico.preco)}</b></div>
-      ${ativo ? `
+      ${ativo && !a.podeAlterar ? `
+        <div class="divisor"></div>
+        <p class="hint erro" role="status">${esc(a.avisoAlteracao || "Este agendamento não pode mais ser alterado pelo site. Entre em contato com o studio.")}</p>` : ""}
+      ${ativo && a.podeAlterar ? `
         <div class="divisor"></div>
         <div class="res-acoes">
           <button type="button" class="acao acao-editar" id="editar">${icone("square-pen", 20)} Editar horário</button>
@@ -89,10 +84,11 @@ function modalEditar() {
       <div class="slots" role="group" aria-label="Horários">
         ${e.horarios.map((h) => {
           const hora = hhmm(h.hora);
-          const livre = h.disponivel && !jaPassou(e.data, hora);
+          const livre = h.disponivel;
           return `<button type="button" class="slot ${e.hora === hora ? "is-selected" : ""}" data-hora="${hora}" ${livre ? "" : "disabled"}>${hora}</button>`;
         }).join("")}
-      </div>`;
+      </div>
+      ${avisoHorarios(e.horarios) ? `<p class="hint">${esc(avisoHorarios(e.horarios))}</p>` : ""}`;
   }
 
   return `
@@ -105,7 +101,7 @@ function modalEditar() {
             ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(e.data))}</span>${icone("chevron-down", 22)}
           </button>
           <input type="date" id="data-input" class="sr-only" tabindex="-1" aria-label="Escolher outra data"
-                 value="${e.data}" min="${hoje}" max="${somarDias(hoje, 60)}">
+                 value="${e.data}" min="${hoje}" max="${limiteAgendamento(hoje)}">
         </div>
         <p class="sub-label">Horários de ${esc(rotuloData(e.data).toLowerCase())}</p>
         ${area}
@@ -277,7 +273,7 @@ async function carregarHorarios() {
   e.horarios = null;
   desenhar();
   try {
-    const horarios = await api.horarios(dataPedida);
+    const horarios = await api.horarios(dataPedida, s.ag.servico_id, s.ag.id);
     if (!ctx.ativa() || s.edicao !== e || e.data !== dataPedida) return;
     e.horarios = horarios;
   } catch (erro) {
@@ -296,12 +292,11 @@ async function salvarHorario() {
   try {
     const atualizado = await api.reagendar(s.ag.id, c.telefone, c.codigo, e.data, e.hora);
     if (!ctx.ativa()) return;
-    s.ag = { ...s.ag, data: atualizado.data, hora: atualizado.hora };
     s.modal = null;
     s.edicao = null;
     s.trabalhando = false;
     toast("Horário atualizado com sucesso");
-    desenhar();
+    await consultar();   // recarrega: o novo horário pode já estar dentro do prazo de alteração
   } catch (erro) {
     if (!ctx.ativa()) return;
     s.trabalhando = false;
