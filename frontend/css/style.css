@@ -122,3 +122,93 @@ a{color:inherit;text-decoration:none}
 .toast.erro{background:var(--rose)}
 
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+
+
+/* =========================================================
+   Etapa 2: agendamento em 3 passos e confirmação
+   ========================================================= */
+.steps{display:flex;gap:10px}
+.steps span{flex:1;height:5px;border-radius:99px;background:#E4DDF0}
+.steps span.on{background:var(--violet)}
+.steps-label{display:flex;justify-content:space-between;font-size:14px;color:var(--ink-soft);margin:12px 0 26px}
+.steps-nome{color:var(--violet);font-weight:600}
+
+/* Escolha do serviço */
+.opt{
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 12px;
+  width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);
+  border-radius:20px;padding:20px 22px;transition:border-color .15s,background .15s;
+}
+.opt:hover{border-color:#CDBBEB}
+.opt.is-selected{background:var(--violet-tint);border-color:var(--violet)}
+.opt-name{font-family:var(--font-display);font-weight:600;font-size:22px}
+.opt-desc{grid-column:1 / -1;color:var(--ink-soft);font-size:15px}
+.opt-meta{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.opt-price{color:var(--violet);font-weight:700;font-size:19px}
+.opt-time{display:flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:15px}
+.radio{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:#fff}
+.is-selected .radio{background:var(--violet);border-color:var(--violet)}
+.footer-actions{margin-top:auto;padding-top:26px}
+
+/* Data e horário */
+.picked-line{display:flex;justify-content:space-between;align-items:center;color:var(--ink-soft);font-weight:600;font-size:16px;margin-bottom:18px}
+.link-sm{color:var(--violet);font-weight:600;font-size:15px}
+.date-wrap{position:relative}
+.date-row{
+  display:flex;align-items:center;gap:12px;width:100%;padding:18px 20px;
+  background:#fff;border:1.5px solid var(--violet);border-radius:18px;
+  font-weight:600;font-size:18px;color:var(--ink);
+}
+.date-row svg{color:var(--violet)}
+.date-row .grow{flex:1;text-align:left}
+.sub-label{font-weight:600;font-size:16px;margin:24px 0 14px}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.slot{padding:16px 0;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--violet);font-weight:600;font-size:17px}
+.slot.is-selected{background:var(--violet);border-color:var(--violet);color:#fff}
+.slot:disabled{background:#E8E3F1;border-color:#E8E3F1;color:var(--muted);text-decoration:line-through;cursor:not-allowed}
+.legend{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin-top:16px}
+.sq{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.sq.livre{border:1.5px solid var(--violet);background:#fff}
+.sq.sel{background:var(--violet)}
+.sq.ocup{background:#E8E3F1}
+.pick-card{display:flex;align-items:center;gap:14px;background:var(--violet-tint);border:1px solid #E0D4F4;border-radius:18px;padding:18px 20px;margin-bottom:14px}
+.pick-card svg{color:var(--violet);flex-shrink:0}
+.pick-title{font-weight:700;font-size:18px}
+.pick-sub{color:var(--ink-soft);font-size:15px;margin-top:2px}
+
+/* Seus dados */
+.field{margin-bottom:22px}
+.field label{display:block;font-weight:600;font-size:16px;margin-bottom:10px}
+.input-wrap{position:relative}
+.input-wrap input{
+  width:100%;padding:18px 52px 18px 20px;border-radius:16px;
+  border:1.5px solid var(--line);background:#fff;font-size:18px;
+}
+.input-wrap input:focus{outline:none;border-color:var(--violet)}
+.input-wrap input::placeholder{color:#B3AEC2}
+.ico-end{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:var(--muted);display:grid}
+.hint{font-size:13.5px;color:var(--muted);margin-top:8px}
+.hint.erro{color:var(--rose)}
+.resumo-titulo{font-weight:600;font-size:22px;margin:10px 0 14px}
+.linha{display:flex;justify-content:space-between;gap:16px;padding:7px 0;color:var(--ink-soft)}
+.linha b{color:var(--ink);text-align:right}
+.divisor{border-top:1px solid var(--line);margin:10px 0}
+.secure-note{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13.5px;margin-top:16px}
+
+/* Confirmação */
+.badge-ok{width:84px;height:84px;border-radius:50%;background:var(--green-tint);color:var(--green);display:grid;place-items:center;margin-bottom:26px}
+.confirm-card{margin:26px 0 16px}
+.confirm-nome{font-family:var(--font-display);font-weight:600;font-size:26px}
+.confirm-servico{color:var(--ink-soft);margin:8px 0 14px}
+.confirm-linha{display:flex;justify-content:space-between;align-items:center;font-weight:700;padding-top:14px;border-top:1px solid var(--line)}
+.confirm-linha span{display:flex;align-items:center;gap:8px}
+.confirm-linha svg{color:var(--violet)}
+.confirm-linha .preco{color:var(--violet)}
+.code-card{background:var(--violet-tint);border-radius:20px;padding:22px;margin-bottom:22px}
+.code-card .eyebrow{margin-bottom:6px;font-size:11.5px}
+.code-row{display:flex;align-items:center;justify-content:space-between}
+.code{font-family:var(--font-display);font-weight:700;font-size:46px;color:var(--violet-deep);letter-spacing:.05em}
+.copy-btn{color:var(--violet);padding:10px}
+.code-hint{color:var(--ink-soft);font-size:15px;line-height:1.45;margin-top:6px}
+.stack-sm{display:flex;flex-direction:column;gap:12px}
