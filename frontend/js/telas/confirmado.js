@@ -1,4 +1,5 @@
 import { estado, irPara } from "../app.js";
+import { WHATSAPP_STUDIO } from "../config.js";
 import { esc, brl, dataHora, icone, pintar, cabecalho, toast } from "../ui.js";
 
 export function renderizar({ raiz }) {
@@ -35,7 +36,7 @@ export function renderizar({ raiz }) {
           <span class="code" id="codigo">${esc(ag.codigo_confirmacao)}</span>
           <button type="button" class="copy-btn" id="copiar" aria-label="Copiar código">${icone("copy", 26)}</button>
         </div>
-        <p class="code-hint">Guarde este código com seu telefone, e use-o em Consultar agendamento para editar ou cancelar.</p>
+        <p class="code-hint">Guarde este código com seu telefone, e use-o em Consultar agendamento para editar ou cancelar. Se perder, <a class="link-sm" href="https://wa.me/${WHATSAPP_STUDIO}" target="_blank" rel="noopener noreferrer">chame o studio no WhatsApp</a>.</p>
       </div>
 
       <div class="stack-sm">
