@@ -11,20 +11,10 @@ const REGRAS = {
   limiteAtivosPorTelefone: 2,      // agendamentos ativos ao mesmo tempo para o mesmo telefone
   duracaoPadraoMin: 60,            // usada quando a duração do serviço não é informada
 
-  // Horários em que um atendimento pode COMEÇAR
-  horariosInicio: ["09:00", "10:00", "11:30", "13:00", "14:00", "15:30", "16:00", "17:00"],
-
-  // Funcionamento por dia da semana (0 = domingo ... 6 = sábado). null = fechado.
-  // O atendimento precisa TERMINAR até o horário de fechar (a duração do serviço conta).
-  funcionamento: {
-    0: null,
-    1: { abre: "09:00", fecha: "18:00" },
-    2: { abre: "09:00", fecha: "18:00" },
-    3: { abre: "09:00", fecha: "18:00" },
-    4: { abre: "09:00", fecha: "18:00" },
-    5: { abre: "09:00", fecha: "18:00" },
-    6: { abre: "09:00", fecha: "14:00" },
-  },
+  // Os horários de funcionamento (por dia da semana e por data) ficam no banco
+  // e são editados pela profissional na tela "Horários".
+  // Os horários de início são gerados a partir da abertura, de hora em hora.
+  passoHorarioMin: 60,
 };
 
 // Erro de regra de negócio: vira uma resposta clara para o cliente.
@@ -103,13 +93,13 @@ const recusa = (codigo, mensagem, status = 422) => ({ ok: false, codigo, mensage
 
 // Diz se um horário pode ser agendado e, se não puder, por quê.
 // agendamentosDoDia: [{ id, hora: "09:00", duracaoMin }] (apenas os não cancelados)
-function avaliarHorario({ data, hora, duracaoMin, agora, agendamentosDoDia = [], ignorarId = null }) {
+// expediente: { abre: "09:00", fecha: "18:00" } do dia, ou null se o studio não atende.
+function avaliarHorario({ data, hora, duracaoMin, agora, expediente, agendamentosDoDia = [], ignorarId = null }) {
   const limite = limiteAgendamento(agora.data);
   if (data > limite) {
     return recusa("FORA_DA_JANELA", `Só é possível agendar até ${formatarData(limite)}.`);
   }
 
-  const expediente = REGRAS.funcionamento[diaDaSemana(data)];
   if (!expediente) return recusa("FECHADO", "O studio não atende neste dia.");
 
   const inicio = paraMin(hora);
@@ -133,6 +123,17 @@ function avaliarHorario({ data, hora, duracaoMin, agora, agendamentosDoDia = [],
   return { ok: true };
 }
 
+// Horários em que um atendimento pode começar: da abertura até antes do fechamento,
+// de hora em hora. Quem decide se o serviço cabe é o avaliarHorario (duração + fechamento).
+function gerarHorariosInicio(expediente) {
+  if (!expediente) return [];
+  const horarios = [];
+  for (let m = paraMin(expediente.abre); m < paraMin(expediente.fecha); m += REGRAS.passoHorarioMin) {
+    horarios.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  }
+  return horarios;
+}
+
 // O cliente só pode cancelar ou trocar o horário com antecedência mínima
 function verificarPrazoAlteracao(agendamento, agora = agoraBrasil()) {
   const falta = absolutoDe(agendamento.data, agendamento.hora) - absoluto(agora.data, agora.minutos);
@@ -148,5 +149,5 @@ function verificarPrazoAlteracao(agendamento, agora = agoraBrasil()) {
 module.exports = {
   REGRAS, ErroRegra, definirRelogio, agoraBrasil,
   paraMin, dataValida, absoluto, absolutoDe, diaDaSemana,
-  limiteAgendamento, avaliarHorario, verificarPrazoAlteracao,
+  limiteAgendamento, avaliarHorario, gerarHorariosInicio, verificarPrazoAlteracao,
 };
