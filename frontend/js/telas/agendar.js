@@ -1,7 +1,7 @@
 import { api } from "../api.js";
 import { estado, irPara } from "../app.js";
 import {
-  $, esc, brl, duracao, hhmm, hojeISO, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
+  $, esc, brl, duracao, hhmm, hojeISO, somarDias, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
   soDigitos, mascaraTelefone, icone, pintar, cabecalho, carregando, toast,
 } from "../ui.js";
 
@@ -160,12 +160,16 @@ function desenharHorarios({ buscando, horarios, erro }) {
       <span>${esc(r.servico.nome)} · ${brl(r.servico.preco)}</span>
       <button type="button" class="link-sm" id="alterar">Alterar</button>
     </div>
-    <div class="date-wrap">
-      <button type="button" class="date-row" id="data-btn">
-        ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(r.data))}</span>${icone("chevron-down", 22)}
-      </button>
-      <input type="date" id="data-input" class="sr-only" tabindex="-1" aria-label="Escolher outra data"
-             value="${r.data}" min="${hoje}" max="${limiteAgendamento(hoje)}">
+    <div class="date-wrap" style="display:flex;gap:10px;align-items:center">
+      <button type="button" class="icon-btn" id="dia-anterior" aria-label="Dia anterior" style="flex:none" ${r.data <= hoje ? "disabled" : ""}>${icone("chevron-left", 20)}</button>
+      <div class="date-sel">
+        <div class="date-row" aria-hidden="true">
+          ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(r.data))}</span>${icone("chevron-down", 22)}
+        </div>
+        <input type="date" id="data-input" class="date-sobre" aria-label="Escolher outra data"
+               value="${r.data}" min="${hoje}" max="${limiteAgendamento(hoje)}">
+      </div>
+      <button type="button" class="icon-btn" id="dia-seguinte" aria-label="Próximo dia" style="flex:none" ${r.data >= limiteAgendamento(hoje) ? "disabled" : ""}>${icone("chevron-right", 20)}</button>
     </div>
     <p class="sub-label">Horários de ${esc(rotuloData(r.data).toLowerCase())}</p>
     ${area}
@@ -186,15 +190,16 @@ function desenharHorarios({ buscando, horarios, erro }) {
   $("#alterar", ctx.raiz).onclick = () => irAoPasso(1);
 
   const entradaData = $("#data-input", ctx.raiz);
-  $("#data-btn", ctx.raiz).onclick = () => {
-    try { entradaData.showPicker(); } catch { entradaData.focus(); entradaData.click(); }
-  };
-  entradaData.onchange = () => {
-    if (!entradaData.value) return;
-    r.data = entradaData.value;
+  entradaData.onclick = () => { try { entradaData.showPicker(); } catch { /* o toque já abre o calendário */ } };
+  const irParaData = (data) => {
+    if (!data || data < hoje || data > limiteAgendamento(hoje)) return;
+    r.data = data;
     r.hora = null;
     passoHorario();
   };
+  entradaData.onchange = () => irParaData(entradaData.value);
+  $("#dia-anterior", ctx.raiz).onclick = () => irParaData(somarDias(r.data, -1));
+  $("#dia-seguinte", ctx.raiz).onclick = () => irParaData(somarDias(r.data, 1));
 
   ctx.raiz.querySelectorAll("[data-hora]").forEach((el) => {
     el.onclick = () => { r.hora = el.dataset.hora; desenharHorarios({ horarios }); };
