@@ -78,3 +78,39 @@ grant select on vw_fato_agendamentos to service_role;
 alter table clientes     enable row level security;
 alter table servicos     enable row level security;
 alter table agendamentos enable row level security;
+
+-- =========================================================
+-- PARTE 4: horário de funcionamento (configurado pela profissional)
+-- Prioridade: data especial > dia da semana > fechado
+-- =========================================================
+create table horario_semanal (
+  dia_semana smallint primary key check (dia_semana between 0 and 6),  -- 0 = domingo
+  aberto boolean not null default true,
+  abre time,
+  fecha time,
+  constraint horario_semanal_valido check (not aberto or (abre is not null and fecha is not null and abre < fecha))
+);
+
+create table excecao_data (
+  data date primary key,
+  aberto boolean not null default true,
+  abre time,
+  fecha time,
+  motivo text,
+  constraint excecao_data_valida check (not aberto or (abre is not null and fecha is not null and abre < fecha))
+);
+
+insert into horario_semanal (dia_semana, aberto, abre, fecha) values
+  (0, false, null, null),
+  (1, true, '09:00', '18:00'),
+  (2, true, '09:00', '18:00'),
+  (3, true, '09:00', '18:00'),
+  (4, true, '09:00', '18:00'),
+  (5, true, '09:00', '18:00'),
+  (6, true, '09:00', '14:00');
+
+alter table horario_semanal enable row level security;
+alter table excecao_data    enable row level security;
+
+grant all on horario_semanal to service_role;
+grant all on excecao_data to service_role;
