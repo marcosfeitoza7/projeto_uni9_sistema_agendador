@@ -18,6 +18,8 @@ const rotas = {
   "/agenda": "./telas/agenda.js",
   "/painel": "./telas/painel.js",
   "/servicos": "./telas/servicos.js",
+  "/horarios": "./telas/horarios.js",
+  "/agendamentos": "./telas/agendamentos.js",
 };
 
 export const irPara = (caminho) => { location.hash = `#${caminho}`; };
