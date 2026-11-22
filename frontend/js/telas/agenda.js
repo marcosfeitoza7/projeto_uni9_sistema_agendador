@@ -3,11 +3,11 @@ import { irPara } from "../app.js";
 import { sessaoAtual, sair } from "../sessao.js";
 import {
   $, esc, brl, duracao, hhmm, hojeISO, somarDias, rotuloData, soDigitos, mascaraTelefone,
-  icone, pintar, cabecalho, carregando, toast,
+  icone, pintar, cabecalho, carregando, toast, menuProfissional,
 } from "../ui.js";
 
 let ctx;
-let s;   // { data, lista, carregando, erro, modal, alvo, trabalhando }
+let s;   // { data, lista, foraDoHorario, carregando, erro, modal, alvo, trabalhando }
 
 const ROTULO_STATUS = {
   confirmado: "Confirmado",
@@ -108,12 +108,7 @@ function desenhar() {
     corpo = resumo() + s.lista.map(cartao).join("");
   }
 
-  const direita = `
-    <nav class="nav-prof" aria-label="Menu da profissional">
-      <a class="nav-item" href="#/painel"><span class="nav-ico">${icone("layout-dashboard", 20)}</span><span class="nav-rot">Painel</span></a>
-      <a class="nav-item" href="#/servicos"><span class="nav-ico">${icone("list", 20)}</span><span class="nav-rot">Serviços</span></a>
-      <button class="nav-item" type="button" id="sair"><span class="nav-ico">${icone("log-out", 20)}</span><span class="nav-rot">Sair</span></button>
-    </nav>`;
+  const direita = menuProfissional("agenda");
 
   pintar(ctx.raiz, `
     ${cabecalho(direita)}
@@ -128,6 +123,12 @@ function desenhar() {
         <input type="date" id="data-input" class="sr-only" tabindex="-1" aria-label="Escolher outra data" value="${s.data}">
       </div>
       ${s.data !== hoje ? `<button type="button" class="link-sm" id="ir-hoje" style="margin-top:12px">Voltar para hoje</button>` : ""}
+      ${s.foraDoHorario ? `
+        <a class="card" href="#/horarios" style="display:block;margin-top:16px;border-color:var(--rose)">
+          <p style="font-weight:600">${icone("triangle-alert", 18)} ${s.foraDoHorario} ${s.foraDoHorario === 1 ? "agendamento fora do horário" : "agendamentos fora do horário"}</p>
+          <p class="hint" style="margin-top:4px">Você mudou o horário de funcionamento. Toque para ver e avisar as clientes.</p>
+        </a>` : ""}
+      <a class="link-sm" href="#/agendamentos" style="display:inline-flex;gap:6px;align-items:center;margin-top:14px">${icone("list", 18)} Ver todos os agendamentos</a>
       ${corpo}
     </main>
     ${s.modal === "cancelar" ? modalCancelar() : ""}
@@ -262,10 +263,25 @@ async function cancelar() {
   desenhar();
 }
 
+// Avisa quando existem agendamentos fora do horário de funcionamento (falha em silêncio)
+async function avisarForaDoHorario() {
+  const t = token();
+  if (!t) return;
+  try {
+    const cfg = await api.admin.horarios(t);
+    if (!ctx.ativa()) return;
+    s.foraDoHorario = cfg.conflitos.length;
+    if (s.foraDoHorario && !s.carregando) desenhar();
+  } catch {
+    // o aviso é só um extra: a agenda funciona sem ele
+  }
+}
+
 // ---------- Entrada da tela ----------
 export async function renderizar(contexto) {
   ctx = contexto;
   if (!sessaoAtual()) return irPara("/login");
-  s = { data: hojeISO(), lista: [], carregando: true, erro: "", modal: null, alvo: null, trabalhando: false };
+  s = { data: hojeISO(), lista: [], foraDoHorario: 0, carregando: true, erro: "", modal: null, alvo: null, trabalhando: false };
+  avisarForaDoHorario();
   await carregar();
 }
