@@ -1,9 +1,10 @@
 import { API_URL } from "./config.js";
 
 export class ApiError extends Error {
-  constructor(mensagem, status) {
+  constructor(mensagem, status, dados = null) {
     super(mensagem);
     this.status = status;
+    this.dados = dados;   // corpo completo da resposta (algumas rotas trazem listas junto do erro)
   }
 }
 
@@ -31,7 +32,7 @@ async function requisitar(caminho, { metodo = "GET", corpo, token } = {}) {
   }
 
   if (!resposta.ok) {
-    throw new ApiError(dados?.erro || "Algo deu errado. Tente novamente.", resposta.status);
+    throw new ApiError(dados?.erro || "Algo deu errado. Tente novamente.", resposta.status, dados);
   }
   return dados;
 }
@@ -72,5 +73,16 @@ export const api = {
       requisitar(`/api/admin/servicos/${id}`, { metodo: "PUT", corpo, token }),
     ativarServico: (id, ativo, token) =>
       requisitar(`/api/admin/servicos/${id}/ativo`, { metodo: "PATCH", corpo: { ativo }, token }),
+    horarios: (token) => requisitar("/api/admin/horarios", { token }),
+    salvarDiaSemana: (dia, corpo, token) =>
+      requisitar(`/api/admin/horarios/semana/${dia}`, { metodo: "PUT", corpo, token }),
+    salvarDataEspecial: (data, corpo, token) =>
+      requisitar(`/api/admin/horarios/data/${data}`, { metodo: "PUT", corpo, token }),
+    removerDataEspecial: (data, token) =>
+      requisitar(`/api/admin/horarios/data/${data}`, { metodo: "DELETE", token }),
+    agendamentos: (filtros, token) => {
+      const q = new URLSearchParams(filtros);
+      return requisitar(`/api/admin/agendamentos?${q}`, { token });
+    },
   },
 };
