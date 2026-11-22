@@ -27,6 +27,8 @@ Toda a stack usa apenas ferramentas com plano gratuito.
 
 **Lash designer (com login)**
 - Agenda do dia com os dados da cliente e atalho para WhatsApp; altera o status do atendimento.
+- Lista de todos os agendamentos, com filtro por período e situação.
+- Horários de funcionamento: define o expediente de cada dia da semana e datas especiais (feriados, folgas ou horário diferente). Se uma mudança deixar agendamentos fora do novo horário, a profissional é avisada (com atalho para WhatsApp); nada é cancelado automaticamente.
 - Painel executivo: faturamento realizado, pendente e cancelado, atendimentos, ranking de serviços.
 - Gestão de serviços: criar, editar (nome, duração, preço), desativar e reativar.
 
@@ -38,8 +40,9 @@ Toda a stack usa apenas ferramentas com plano gratuito.
 | Cancelar/trocar horário (cliente) | até 4 horas antes |
 | Agendamentos ativos por telefone | no máximo 2 |
 | Janela de agendamento | até o mesmo dia do mês seguinte, menos 1 dia |
-| Funcionamento | Seg–Sex 09h–18h · Sáb 09h–14h · Dom fechado |
-| Horários de início | 09:00, 10:00, 11:30, 13:00, 14:00, 15:30, 16:00, 17:00 |
+| Funcionamento | definido pela profissional na tela Horários (padrão: Seg–Sex 09h–18h · Sáb 09h–14h · Dom fechado) |
+| Datas especiais | têm prioridade sobre o horário da semana |
+| Horários de início | gerados de hora em hora a partir da abertura do dia |
 | Término | o serviço precisa terminar até o horário de fechar |
 | Conflito de horário | não é possível duas reservas ativas se sobrepondo |
 | Status inicial | novo agendamento já nasce `confirmado` |
