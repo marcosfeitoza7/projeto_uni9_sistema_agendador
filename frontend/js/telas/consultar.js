@@ -2,7 +2,7 @@ import { api } from "../api.js";
 import { estado } from "../app.js";
 import { WHATSAPP_STUDIO } from "../config.js";
 import {
-  $, esc, brl, duracao, hhmm, hojeISO, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
+  $, esc, brl, duracao, hhmm, hojeISO, somarDias, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
   soDigitos, mascaraTelefone, icone, pintar, cabecalho, botaoVoltar, toast,
 } from "../ui.js";
 
@@ -97,12 +97,16 @@ function modalEditar() {
       <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="titulo-modal">
         <h2 class="sheet-titulo" id="titulo-modal">Escolher novo horário</h2>
         <p class="sheet-texto">${esc(servico.nome)} · ${duracao(servico.duracao_minutos)}</p>
-        <div class="date-wrap">
-          <button type="button" class="date-row" id="data-btn">
-            ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(e.data))}</span>${icone("chevron-down", 22)}
-          </button>
-          <input type="date" id="data-input" class="sr-only" tabindex="-1" aria-label="Escolher outra data"
-                 value="${e.data}" min="${hoje}" max="${limiteAgendamento(hoje)}">
+        <div class="date-wrap" style="display:flex;gap:10px;align-items:center">
+          <button type="button" class="icon-btn" id="dia-anterior" aria-label="Dia anterior" style="flex:none" ${e.data <= hoje ? "disabled" : ""}>${icone("chevron-left", 20)}</button>
+          <div class="date-sel">
+            <div class="date-row" aria-hidden="true">
+              ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(e.data))}</span>${icone("chevron-down", 22)}
+            </div>
+            <input type="date" id="data-input" class="date-sobre" aria-label="Escolher outra data"
+                   value="${e.data}" min="${hoje}" max="${limiteAgendamento(hoje)}">
+          </div>
+          <button type="button" class="icon-btn" id="dia-seguinte" aria-label="Próximo dia" style="flex:none" ${e.data >= limiteAgendamento(hoje) ? "disabled" : ""}>${icone("chevron-right", 20)}</button>
         </div>
         <p class="sub-label">Horários de ${esc(rotuloData(e.data).toLowerCase())}</p>
         ${area}
@@ -203,15 +207,17 @@ function ligar() {
   if (s.modal === "editar") {
     const e = s.edicao;
     const entradaData = $("#data-input", raiz);
-    $("#data-btn", raiz).onclick = () => {
-      try { entradaData.showPicker(); } catch { entradaData.focus(); entradaData.click(); }
-    };
-    entradaData.onchange = () => {
-      if (!entradaData.value) return;
-      e.data = entradaData.value;
+    const hoje = hojeISO();
+    entradaData.onclick = () => { try { entradaData.showPicker(); } catch { /* o toque já abre o calendário */ } };
+    const irParaData = (data) => {
+      if (!data || data < hoje || data > limiteAgendamento(hoje)) return;
+      e.data = data;
       e.hora = null;
       carregarHorarios();
     };
+    entradaData.onchange = () => irParaData(entradaData.value);
+    $("#dia-anterior", raiz).onclick = () => irParaData(somarDias(e.data, -1));
+    $("#dia-seguinte", raiz).onclick = () => irParaData(somarDias(e.data, 1));
     raiz.querySelectorAll("[data-hora]").forEach((el) => {
       el.onclick = () => { e.hora = el.dataset.hora; desenhar(); };
     });
