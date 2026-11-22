@@ -2,12 +2,12 @@ import { api } from "../api.js";
 import { irPara } from "../app.js";
 import { sessaoAtual, sair } from "../sessao.js";
 import {
-  $, esc, duracao, hojeISO, somarDias, mascaraTelefone,
+  $, esc, duracao, hojeISO, somarDias, soDigitos, mascaraTelefone,
   icone, pintar, cabecalho, carregando, toast, menuProfissional,
 } from "../ui.js";
 
 let ctx;
-let s;   // { lista, periodo, status, carregando, erro }
+let s;   // { lista, periodo, status, busca, carregando, erro }
 
 const ROTULO_STATUS = { confirmado: "Confirmado", pendente: "Pendente", concluido: "Concluído", cancelado: "Cancelado" };
 const PERIODOS = [["tudo", "Tudo"], ["futuros", "A partir de hoje"], ["passados", "Já passaram"]];
@@ -32,9 +32,21 @@ function cartao(a) {
     </section>`;
 }
 
-function listaAgrupada() {
+// Sem acento e em minúsculas, para a busca ignorar maiúsculas e acentos
+const normalizar = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+// Aplica a busca por nome ou telefone (parte do número, com ou sem máscara)
+function listaFiltrada() {
+  const nome = normalizar(s.busca);
+  const digitos = soDigitos(s.busca);
+  if (!nome) return s.lista;
+  return s.lista.filter((a) =>
+    normalizar(a.cliente).includes(nome) || (digitos.length >= 2 && soDigitos(a.telefone).includes(digitos)));
+}
+
+function listaAgrupada(lista) {
   const grupos = [];
-  for (const a of s.lista) {
+  for (const a of lista) {
     const ultimo = grupos[grupos.length - 1];
     if (ultimo && ultimo.data === a.data) ultimo.itens.push(a);
     else grupos.push({ data: a.data, itens: [a] });
@@ -44,9 +56,18 @@ function listaAgrupada() {
     ${g.itens.map(cartao).join("")}`).join("");
 }
 
+// Contagem e lista (também redesenhada sozinha enquanto a profissional digita a busca)
+function conteudoLista() {
+  const lista = listaFiltrada();
+  const total = lista.length;
+  const ativos = lista.filter((a) => a.status !== "cancelado").length;
+  if (!s.lista.length) return `<div class="card center" style="margin-top:18px"><p>Nenhum agendamento encontrado.</p></div>`;
+  if (!total) return `<div class="card center" style="margin-top:18px"><p>Nenhum agendamento encontrado para essa busca.</p></div>`;
+  const contagem = s.busca.trim() ? `${total} de ${s.lista.length}` : `${total}`;
+  return `<p class="hint" style="margin-top:16px">${contagem} ${(s.busca.trim() ? s.lista.length : total) === 1 ? "agendamento" : "agendamentos"} (${ativos} ${ativos === 1 ? "ativo ou concluído" : "ativos ou concluídos"})${s.lista.length >= 500 ? ". Mostrando os 500 mais recentes." : ""}</p>${listaAgrupada(lista)}`;
+}
+
 function desenhar() {
-  const total = s.lista.length;
-  const ativos = s.lista.filter((a) => a.status !== "cancelado").length;
   let corpo;
   if (s.carregando) {
     corpo = carregando("Carregando agendamentos...");
@@ -56,10 +77,8 @@ function desenhar() {
         <p>${esc(s.erro)}</p>
         <button type="button" class="btn btn-outline" id="tentar" style="margin-top:14px">Tentar novamente</button>
       </div>`;
-  } else if (!total) {
-    corpo = `<div class="card center" style="margin-top:18px"><p>Nenhum agendamento encontrado.</p></div>`;
   } else {
-    corpo = `<p class="hint" style="margin-top:16px">${total} ${total === 1 ? "agendamento" : "agendamentos"} (${ativos} ${ativos === 1 ? "ativo ou concluído" : "ativos ou concluídos"})${total >= 500 ? ". Mostrando os 500 mais recentes." : ""}</p>${listaAgrupada()}`;
+    corpo = conteudoLista();
   }
 
   pintar(ctx.raiz, `
@@ -68,6 +87,13 @@ function desenhar() {
       <a class="link-sm" href="#/agenda" style="display:inline-flex;gap:6px;align-items:center">${icone("arrow-left", 18)} Voltar para a agenda</a>
       <h1 class="title" style="margin-top:10px">Todos os agendamentos</h1>
       <div class="field" style="margin-top:18px">
+        <label for="busca">Buscar cliente</label>
+        <div class="input-wrap">
+          <input id="busca" type="search" autocomplete="off" maxlength="60" placeholder="Nome ou telefone" value="${esc(s.busca)}">
+          <span class="ico-end">${icone("search", 22)}</span>
+        </div>
+      </div>
+      <div class="field">
         <label>Período</label>
         <div class="slots" style="grid-template-columns:1fr 1fr 1fr">
           ${PERIODOS.map(([v, r]) => `<button type="button" class="slot ${s.periodo === v ? "is-selected" : ""}" style="font-size:14px;padding:14px 4px" data-periodo="${v}">${r}</button>`).join("")}
@@ -79,7 +105,7 @@ function desenhar() {
           ${STATUS.map(([v, r]) => `<button type="button" class="slot ${s.status === v ? "is-selected" : ""}" style="font-size:15px;padding:14px 4px" data-status="${v}">${r}</button>`).join("")}
         </div>
       </div>
-      ${corpo}
+      <div id="area-lista">${corpo}</div>
     </main>`);
   ligar();
 }
@@ -89,6 +115,10 @@ function ligar() {
   $("#sair", raiz).onclick = () => { sair(); irPara("/login"); };
   const tentar = $("#tentar", raiz);
   if (tentar) tentar.onclick = carregar;
+  $("#busca", raiz).oninput = (ev) => {
+    s.busca = ev.target.value;
+    if (!s.carregando && !s.erro) $("#area-lista", raiz).innerHTML = conteudoLista();
+  };
   raiz.querySelectorAll("[data-periodo]").forEach((b) => { b.onclick = () => { s.periodo = b.dataset.periodo; carregar(); }; });
   raiz.querySelectorAll("[data-status]").forEach((b) => { b.onclick = () => { s.status = b.dataset.status; carregar(); }; });
 }
@@ -137,6 +167,6 @@ async function carregar() {
 export async function renderizar(contexto) {
   ctx = contexto;
   if (!sessaoAtual()) return irPara("/login");
-  s = { lista: [], periodo: "tudo", status: "", carregando: true, erro: "", ultimoPedido: "" };
+  s = { lista: [], periodo: "tudo", status: "", busca: "", carregando: true, erro: "", ultimoPedido: "" };
   await carregar();
 }
