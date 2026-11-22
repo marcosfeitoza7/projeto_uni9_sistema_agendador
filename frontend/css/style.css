@@ -69,7 +69,7 @@ a{color:inherit;text-decoration:none}
 .topbar:has(.nav-prof) .brand-tag{display:none}
 .topbar:has(.nav-prof) .brand-name{white-space:nowrap}
 .topbar:has(.nav-prof) .brand{align-self:flex-start;min-height:44px}
-@media (max-width:380px){.topbar:has(.nav-prof) .brand-mark{width:38px;height:38px;font-size:19px}.topbar:has(.nav-prof) .brand{gap:8px}.topbar:has(.nav-prof) .brand-name{font-size:17px}.nav-item{min-width:46px}.nav-prof{gap:2px}}
+@media (max-width:430px){.topbar:has(.nav-prof) .nav-rot{font-size:10px}.topbar:has(.nav-prof) .brand-mark{width:38px;height:38px;font-size:19px}.topbar:has(.nav-prof) .brand{gap:8px}.topbar:has(.nav-prof) .brand-name{font-size:17px}.nav-item{min-width:46px}.nav-prof{gap:2px}}
 .top-action{display:inline-flex;align-items:center;gap:6px;color:var(--violet);font-weight:600;font-size:15px}
 .deco-icon{color:var(--violet);display:grid;place-items:center}
 
