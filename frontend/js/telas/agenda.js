@@ -116,11 +116,13 @@ function desenhar() {
       <h1 class="title">Agenda do dia</h1>
       <div class="date-wrap" style="display:flex;gap:10px;align-items:stretch;margin-top:18px">
         <button type="button" class="icon-btn" id="dia-anterior" aria-label="Dia anterior">${icone("chevron-left", 20)}</button>
-        <button type="button" class="date-row" id="data-btn" style="flex:1">
-          ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(s.data))}</span>${icone("chevron-down", 22)}
-        </button>
+        <div class="date-sel">
+          <div class="date-row" aria-hidden="true">
+            ${icone("calendar-days", 24)}<span class="grow">${esc(rotuloData(s.data))}</span>${icone("chevron-down", 22)}
+          </div>
+          <input type="date" id="data-input" class="date-sobre" aria-label="Escolher outra data" value="${s.data}">
+        </div>
         <button type="button" class="icon-btn" id="dia-seguinte" aria-label="Próximo dia">${icone("chevron-right", 20)}</button>
-        <input type="date" id="data-input" class="sr-only" tabindex="-1" aria-label="Escolher outra data" value="${s.data}">
       </div>
       ${s.data !== hoje ? `<button type="button" class="link-sm" id="ir-hoje" style="margin-top:12px">Voltar para hoje</button>` : ""}
       ${s.foraDoHorario ? `
@@ -142,9 +144,7 @@ function ligar() {
   $("#sair", raiz).onclick = () => { sair(); irPara("/login"); };
 
   const entradaData = $("#data-input", raiz);
-  $("#data-btn", raiz).onclick = () => {
-    try { entradaData.showPicker(); } catch { entradaData.focus(); entradaData.click(); }
-  };
+  entradaData.onclick = () => { try { entradaData.showPicker(); } catch { /* o toque já abre o calendário */ } };
   entradaData.onchange = () => { if (entradaData.value) mudarData(entradaData.value); };
   $("#dia-anterior", raiz).onclick = () => mudarData(somarDias(s.data, -1));
   $("#dia-seguinte", raiz).onclick = () => mudarData(somarDias(s.data, 1));
