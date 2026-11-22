@@ -120,6 +120,7 @@ export function limiteAgendamento(hoje) {
 // Explica ao cliente por que alguns horários não podem ser escolhidos.
 // "horarios" vem da API: [{ hora, disponivel, motivo }]
 export function avisoHorarios(horarios) {
+  if (!horarios.length) return "O studio não atende neste dia. Escolha outra data.";
   const motivos = new Set(horarios.filter((h) => !h.disponivel).map((h) => h.motivo));
   if (!horarios.some((h) => h.disponivel)) {
     if (motivos.has("FECHADO")) return "O studio não atende neste dia. Escolha outra data.";
