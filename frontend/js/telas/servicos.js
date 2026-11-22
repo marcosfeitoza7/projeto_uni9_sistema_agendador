@@ -1,7 +1,7 @@
 import { api } from "../api.js";
 import { irPara } from "../app.js";
 import { sessaoAtual, sair } from "../sessao.js";
-import { $, esc, brl, duracao, icone, pintar, cabecalho, carregando, toast } from "../ui.js";
+import { $, esc, brl, duracao, icone, pintar, cabecalho, carregando, toast, menuProfissional } from "../ui.js";
 
 let ctx;
 let s;   // { lista, carregando, erro, modal, alvo, form, trabalhando }
@@ -97,12 +97,7 @@ function desenhar() {
     corpo = s.lista.map(cartao).join("");
   }
 
-  const direita = `
-    <nav class="nav-prof" aria-label="Menu da profissional">
-      <a class="nav-item" href="#/agenda"><span class="nav-ico">${icone("calendar-days", 20)}</span><span class="nav-rot">Agenda</span></a>
-      <a class="nav-item" href="#/painel"><span class="nav-ico">${icone("layout-dashboard", 20)}</span><span class="nav-rot">Painel</span></a>
-      <button class="nav-item" type="button" id="sair"><span class="nav-ico">${icone("log-out", 20)}</span><span class="nav-rot">Sair</span></button>
-    </nav>`;
+  const direita = menuProfissional("servicos");
 
   pintar(ctx.raiz, `
     ${cabecalho(direita)}
