@@ -89,6 +89,21 @@ export function cabecalho(direita = "") {
   </header>`;
 }
 
+// Menu da profissional: lista os destinos, menos a tela em que ela já está
+export function menuProfissional(atual) {
+  const itens = [
+    ["agenda", "#/agenda", "calendar-days", "Agenda"],
+    ["horarios", "#/horarios", "clock", "Horários"],
+    ["servicos", "#/servicos", "list", "Serviços"],
+    ["painel", "#/painel", "layout-dashboard", "Painel"],
+  ].filter(([id]) => id !== atual);
+  return `
+    <nav class="nav-prof" aria-label="Menu da profissional">
+      ${itens.map(([, href, ico, rotulo]) => `<a class="nav-item" href="${href}"><span class="nav-ico">${icone(ico, 20)}</span><span class="nav-rot">${rotulo}</span></a>`).join("")}
+      <button class="nav-item" type="button" id="sair"><span class="nav-ico">${icone("log-out", 20)}</span><span class="nav-rot">Sair</span></button>
+    </nav>`;
+}
+
 export const botaoVoltar = (destino) =>
   `<a class="icon-btn" href="${destino}" aria-label="Voltar">${icone("arrow-left", 20)}</a>`;
 
