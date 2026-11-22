@@ -1,5 +1,6 @@
 import { api } from "../api.js";
 import { estado } from "../app.js";
+import { WHATSAPP_STUDIO } from "../config.js";
 import {
   $, esc, brl, duracao, hhmm, hojeISO, limiteAgendamento, avisoHorarios, rotuloData, dataHora,
   soDigitos, mascaraTelefone, icone, pintar, cabecalho, botaoVoltar, toast,
@@ -115,6 +116,14 @@ function modalEditar() {
     </div>`;
 }
 
+// Link do WhatsApp do studio para quem esqueceu o código (leva o telefone, se já digitado)
+function linkEsqueciCodigo() {
+  const digitos = soDigitos(s.telefone);
+  const texto = "Olá! Esqueci o código do meu agendamento no Lash Studio." +
+    ([10, 11].includes(digitos.length) ? ` Meu telefone é ${s.telefone}.` : "") + " Pode me ajudar?";
+  return `https://wa.me/${WHATSAPP_STUDIO}?text=${encodeURIComponent(texto)}`;
+}
+
 function desenhar() {
   pintar(ctx.raiz, `
     ${cabecalho(botaoVoltar("#/"))}
@@ -142,6 +151,13 @@ function desenhar() {
           ${s.buscando ? "Consultando..." : `Consultar ${icone("search", 22)}`}
         </button>
         ${s.erro ? `<p class="hint erro" role="alert">${esc(s.erro)}</p>` : ""}
+        <button type="button" class="link-sm" id="esqueci" style="margin-top:14px">Esqueci meu código</button>
+        ${s.esqueci ? `
+          <div class="card" style="margin-top:12px">
+            <p style="font-weight:600">Sem problema!</p>
+            <p class="hint" style="margin-top:6px">Chame o studio no WhatsApp informando seu nome e telefone. A profissional localiza seu agendamento e te ajuda.</p>
+            <a class="btn btn-primary" id="zap-esqueci" style="margin-top:14px" href="${esc(linkEsqueciCodigo())}" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>
+          </div>` : ""}
       </form>
 
       ${s.ag ? cartao() : ""}
@@ -157,7 +173,13 @@ function ligar() {
   const telefone = $("#telefone", raiz);
   const codigo = $("#codigo", raiz);
 
-  telefone.oninput = () => { telefone.value = mascaraTelefone(telefone.value); s.telefone = telefone.value; };
+  telefone.oninput = () => {
+    telefone.value = mascaraTelefone(telefone.value);
+    s.telefone = telefone.value;
+    const zap = $("#zap-esqueci", raiz);
+    if (zap) zap.href = linkEsqueciCodigo();
+  };
+  $("#esqueci", raiz).onclick = () => { s.esqueci = !s.esqueci; desenhar(); };
   codigo.oninput = () => {
     codigo.value = codigo.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     s.codigo = codigo.value;
@@ -318,7 +340,7 @@ export function renderizar(contexto) {
   s = {
     telefone: ultimo ? mascaraTelefone(ultimo.telefone) : "",
     codigo: ultimo?.codigo_confirmacao || "",
-    buscando: false, erro: "", ag: null, credenciais: null,
+    buscando: false, erro: "", ag: null, credenciais: null, esqueci: false,
     modal: null, edicao: null, trabalhando: false,
   };
   if (ultimo) return consultar();
