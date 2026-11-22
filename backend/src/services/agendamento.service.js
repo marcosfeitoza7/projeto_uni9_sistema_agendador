@@ -1,8 +1,9 @@
 const supabase = require("../supabaseClient");
 const R = require("../regras");
 
+const { expedienteDaData } = require("./horarios.service");
+
 const { ErroRegra, REGRAS } = R;
-const HORARIOS_PADRAO = REGRAS.horariosInicio;
 
 const crypto = require("crypto");
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O e 1/I, fáceis de confundir
@@ -103,11 +104,12 @@ async function listarHorariosDisponiveis(data, servicoId, ignorarId) {
   if (!R.dataValida(data)) throw new ErroRegra("Data inválida.", 400, "DATA_INVALIDA");
 
   const duracaoMin = servicoId ? (await buscarServico(servicoId, { permitirInativo: Boolean(ignorarId) })).duracao_minutos : REGRAS.duracaoPadraoMin;
+  const expediente = await expedienteDaData(data);
   const doDia = await agendamentosDoDia(data);
   const agora = R.agoraBrasil();
 
-  return HORARIOS_PADRAO.map((hora) => {
-    const r = R.avaliarHorario({ data, hora, duracaoMin, agora, agendamentosDoDia: doDia, ignorarId });
+  return R.gerarHorariosInicio(expediente).map((hora) => {
+    const r = R.avaliarHorario({ data, hora, duracaoMin, agora, expediente, agendamentosDoDia: doDia, ignorarId });
     return { hora, disponivel: r.ok, motivo: r.ok ? null : r.codigo };
   });
 }
@@ -123,17 +125,25 @@ async function criarAgendamento({ nome, telefone, servico_id, data, hora }) {
   if (![10, 11].includes(telefoneLimpo.length)) {
     throw new ErroRegra("Informe o telefone com DDD.", 400, "DADOS_INVALIDOS");
   }
-  if (!R.dataValida(data) || !HORARIOS_PADRAO.includes(String(hora).slice(0, 5))) {
+  if (!R.dataValida(data)) {
     throw new ErroRegra("Data ou horário inválido.", 400, "DADOS_INVALIDOS");
   }
   const horaPadrao = String(hora).slice(0, 5);
+  const expediente = await expedienteDaData(data);
+  if (!R.gerarHorariosInicio(expediente).includes(horaPadrao)) {
+    throw new ErroRegra(
+      expediente ? "Data ou horário inválido." : "O studio não atende neste dia.",
+      expediente ? 400 : 422,
+      expediente ? "DADOS_INVALIDOS" : "FECHADO"
+    );
+  }
 
   const servico = await buscarServico(servico_id);
   const agora = R.agoraBrasil();
   const doDia = await agendamentosDoDia(data);
 
   const avaliacao = R.avaliarHorario({
-    data, hora: horaPadrao, duracaoMin: servico.duracao_minutos, agora, agendamentosDoDia: doDia,
+    data, hora: horaPadrao, duracaoMin: servico.duracao_minutos, agora, expediente, agendamentosDoDia: doDia,
   });
   if (!avaliacao.ok) throw new ErroRegra(avaliacao.mensagem, avaliacao.status, avaliacao.codigo);
 
@@ -206,8 +216,16 @@ async function atualizarStatus(id, status) {
 // "agendamento" é o registro já validado pela rota (telefone + código), com o serviço
 async function reagendarHorario(agendamento, { data, hora }) {
   const horaPadrao = String(hora).slice(0, 5);
-  if (!R.dataValida(data) || !HORARIOS_PADRAO.includes(horaPadrao)) {
+  if (!R.dataValida(data)) {
     throw new ErroRegra("Data ou horário inválido.", 400, "DADOS_INVALIDOS");
+  }
+  const expediente = await expedienteDaData(data);
+  if (!R.gerarHorariosInicio(expediente).includes(horaPadrao)) {
+    throw new ErroRegra(
+      expediente ? "Data ou horário inválido." : "O studio não atende neste dia.",
+      expediente ? 400 : 422,
+      expediente ? "DADOS_INVALIDOS" : "FECHADO"
+    );
   }
   if (data === agendamento.data && horaPadrao === String(agendamento.hora).slice(0, 5)) {
     throw new ErroRegra("Esse já é o horário do seu agendamento.", 422, "NADA_A_ALTERAR");
@@ -216,7 +234,7 @@ async function reagendarHorario(agendamento, { data, hora }) {
   const duracaoMin = agendamento.servicos?.duracao_minutos ?? REGRAS.duracaoPadraoMin;
   const doDia = await agendamentosDoDia(data);
   const avaliacao = R.avaliarHorario({
-    data, hora: horaPadrao, duracaoMin, agora: R.agoraBrasil(),
+    data, hora: horaPadrao, duracaoMin, agora: R.agoraBrasil(), expediente,
     agendamentosDoDia: doDia, ignorarId: agendamento.id,
   });
   if (!avaliacao.ok) throw new ErroRegra(avaliacao.mensagem, avaliacao.status, avaliacao.codigo);
@@ -238,7 +256,6 @@ async function reagendarHorario(agendamento, { data, hora }) {
 }
 
 module.exports = {
-  HORARIOS_PADRAO,
   buscarOuCriarCliente,
   listarHorariosDisponiveis,
   criarAgendamento,
