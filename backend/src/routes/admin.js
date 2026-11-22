@@ -11,6 +11,9 @@ const hojeBrasil = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Ame
 // Todas as rotas abaixo exigem um token válido da lash designer
 router.use(exigirLogin);
 
+// Horários de funcionamento e lista de todos os agendamentos
+router.use(require("./admin-horarios"));
+
 // GET /api/admin/agenda?data=2026-11-10
 router.get("/agenda", async (req, res) => {
   const data = req.query.data || hojeBrasil();
