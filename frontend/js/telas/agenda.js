@@ -11,7 +11,6 @@ let s;   // { data, lista, foraDoHorario, carregando, erro, modal, alvo, trabalh
 
 const ROTULO_STATUS = {
   confirmado: "Confirmado",
-  pendente: "Pendente",
   concluido: "Concluído",
   cancelado: "Cancelado",
 };
@@ -40,7 +39,7 @@ function resumo() {
 }
 
 function cartao(a) {
-  const ativo = ["confirmado", "pendente"].includes(a.status);
+  const ativo = a.status === "confirmado";
   const servico = a.servicos || {};
   return `
     <section class="card" style="margin-top:14px">
