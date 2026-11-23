@@ -9,7 +9,7 @@ import {
 let ctx;
 let s;   // { lista, periodo, status, busca, carregando, erro }
 
-const ROTULO_STATUS = { confirmado: "Confirmado", pendente: "Pendente", concluido: "Concluído", cancelado: "Cancelado" };
+const ROTULO_STATUS = { confirmado: "Confirmado", concluido: "Concluído", cancelado: "Cancelado" };
 const PERIODOS = [["tudo", "Tudo"], ["futuros", "A partir de hoje"], ["passados", "Já passaram"]];
 const STATUS = [["", "Todos"], ["confirmado", "Confirmados"], ["concluido", "Concluídos"], ["cancelado", "Cancelados"]];
 
