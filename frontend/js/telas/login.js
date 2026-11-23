@@ -66,7 +66,7 @@ function telaCodigo() {
       <div class="field">
         <label for="codigo">Código recebido por e-mail</label>
         <div class="input-wrap">
-          <input id="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="000000">
+          <input id="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="00000000">
         </div>
       </div>
       ${campoSenha("nova", "Nova senha", "new-password")}
