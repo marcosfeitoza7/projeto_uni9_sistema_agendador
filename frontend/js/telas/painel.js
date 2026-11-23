@@ -200,10 +200,10 @@ async function montarGraficos() {
     graficos.push(new Chart(canvasStatus, {
       type: "doughnut",
       data: {
-        labels: ["Concluídos", "Confirmados", "Pendentes", "Cancelados"],
+        labels: ["Concluídos", "Confirmados", "Cancelados"],
         datasets: [{
-          data: [st.concluido, st.confirmado, st.pendente, st.cancelado],
-          backgroundColor: [verde, violeta, ambar, rosa],
+          data: [st.concluido, st.confirmado, st.cancelado],
+          backgroundColor: [verde, violeta, rosa],
           borderWidth: 2,
           borderColor: "#fff",
         }],
