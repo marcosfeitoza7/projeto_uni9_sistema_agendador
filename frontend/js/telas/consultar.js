@@ -11,7 +11,6 @@ let s;     // estado da tela (campos, resultado, janelas abertas)
 
 const ROTULO_STATUS = {
   confirmado: "Confirmado",
-  pendente: "Pendente",
   concluido: "Concluído",
   cancelado: "Cancelado",
 };
@@ -19,7 +18,7 @@ const ROTULO_STATUS = {
 // ---------- Desenho da tela ----------
 function cartao() {
   const a = s.ag;
-  const ativo = ["confirmado", "pendente"].includes(a.status);
+  const ativo = a.status === "confirmado";
   const servico = a.servicos || {};
   const avisoFinal = a.status === "cancelado"
     ? "Este agendamento foi cancelado."
